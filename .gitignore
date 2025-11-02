@@ -1,6 +1,3 @@
-CLAUDE.md
-
-
 # Logs
 logs
 *.log
@@ -103,15 +100,6 @@ typings/
 .mcp.json
 .mcp-identities/
 data/
-
-# Documentation files
-ARCHITECTURE.md
-ARCHITECTURE_SUMMARY.txt
-CODEBASE_ANALYSIS.md
-DOCUMENTATION_INDEX.md
-QUICK_REFERENCE.md
-RACE_CONDITION_FIXES.md
-mcp-config-example.json
 
 # Build output
 dist/
