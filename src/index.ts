@@ -695,9 +695,19 @@ export class AgentMessagingServer {
   }
 }
 
-// Start the server
-const server = new AgentMessagingServer();
-server.start().catch((error) => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
-});
+/**
+ * Starts the MCP server
+ * Only called when running as main entry point, not when imported in tests
+ */
+export async function startServer(): Promise<void> {
+  const server = new AgentMessagingServer();
+  await server.start();
+}
+
+// Only start the server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  startServer().catch((error) => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  });
+}
