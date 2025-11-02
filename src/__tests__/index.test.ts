@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { AgentMessagingServer } from '../index';
 import { ChatManager } from '../chat-manager';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';

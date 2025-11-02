@@ -2,6 +2,7 @@
  * Unit tests for AgentNamer
  */
 
+import { jest } from '@jest/globals';
 import { AgentNamer } from '../agent-namer';
 import { AsyncLock } from '../async-lock';
 
