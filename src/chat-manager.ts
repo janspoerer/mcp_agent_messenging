@@ -73,6 +73,8 @@ export class ChatManager {
     return this.myIdentity.name;
   }
 
+
+
   /**
    * Sends a message to a project chat
    * Uses atomic file locking to prevent race conditions
@@ -213,6 +215,26 @@ export class ChatManager {
     }
 
     return filtered;
+  }
+
+  /**
+   * Searches messages in a project chat
+   * @param projectPath The project path
+   * @param query The search query
+   * @returns Array of messages that match the query
+   */
+  async searchMessages(projectPath: string, query: string): Promise<Message[]> {
+    const chatRoom = await this.persistence.loadChatRoom(projectPath);
+
+    if (!chatRoom) {
+      return [];
+    }
+
+    const lowerCaseQuery = query.toLowerCase();
+
+    return chatRoom.messages.filter((msg) =>
+      msg.content.toLowerCase().includes(lowerCaseQuery)
+    );
   }
 
   /**

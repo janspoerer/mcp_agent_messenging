@@ -72,16 +72,27 @@ class AgentMessagingServer {
           case 'read_messages':
             return await this.handleReadMessages(projectPath, args);
 
-          case 'send_message':
-            return await this.handleSendMessage(projectPath, args);
+                    case 'send_message':
 
-                    case 'get_agent_names':            return await this.handleGetAgentNames(projectPath, args);
+                      return await this.handleSendMessage(projectPath, args);
+
+          
+
+                    case 'get_agent_names':
+
+                      return await this.handleGetAgentNames(projectPath, args);
 
           
 
                     case 'heartbeat':
 
                       return await this.handleHeartbeat(projectPath, args);
+
+          
+
+                    case 'search_messages':
+
+                      return await this.handleSearchMessages(projectPath, args);
 
           
 
@@ -225,6 +236,42 @@ class AgentMessagingServer {
 
                 {
 
+                  name: 'search_messages',
+
+                  description: 'Search for messages in your project chat room.',
+
+                  inputSchema: {
+
+                    type: 'object',
+
+                    properties: {
+
+                      query: {
+
+                        type: 'string',
+
+                        description: 'The text to search for in the message content.',
+
+                      },
+
+                      project_path: {
+
+                        type: 'string',
+
+                        description: 'The project path/folder (defaults to current working directory)',
+
+                      },
+
+                    },
+
+                    required: ['query'],
+
+                  },
+
+                },
+
+                {
+
                   name: 'get_agent_names',
 
                   description: 'Get the names of all agents currently active in your project chat room.',
@@ -296,23 +343,42 @@ class AgentMessagingServer {
             ): Promise<any> {
 
               // Determine which filtering approach to use
+
               let messages;
+
               const myName = this.chatManager.getMyName();
 
+          
+
               if (args.since_timestamp || args.last_seconds !== undefined) {
+
                 // Use advanced filtering if any timestamp-based filter is provided
+
                 messages = await this.chatManager.getFilteredMessages(projectPath, {
+
                   sinceTimestamp: args.since_timestamp,
+
                   lastSeconds: args.last_seconds,
+
                   count: args.count,
+
                 });
+
               } else if (args.count) {
+
                 // Use simple count-based filtering
+
                 messages = await this.chatManager.getLastMessages(projectPath, args.count);
+
               } else {
+
                 // Default: get last 10 messages
+
                 messages = await this.chatManager.getLastMessages(projectPath, 10);
+
               }
+
+          
 
               const formattedMessages = messages.map((msg) => {
 
@@ -322,7 +388,7 @@ class AgentMessagingServer {
 
               });
 
-
+          
 
               return {
 
@@ -406,6 +472,80 @@ class AgentMessagingServer {
 
             /**
 
+             * Handles the search_messages tool
+
+             */
+
+            private async handleSearchMessages(
+
+              projectPath: string,
+
+              args: any
+
+            ): Promise<any> {
+
+              const query = args.query as string;
+
+          
+
+              if (!query || query.trim().length === 0) {
+
+                throw new Error('Search query cannot be empty');
+
+              }
+
+          
+
+              const messages = await this.chatManager.searchMessages(projectPath, query);
+
+              const myName = this.chatManager.getMyName();
+
+          
+
+              const formattedMessages = messages.map((msg) => {
+
+                const time = msg.timestamp.toLocaleTimeString();
+
+                return `[${time}] ${msg.sender}: ${msg.content}`;
+
+              });
+
+          
+
+              return {
+
+                content: [
+
+                  {
+
+                    type: 'text',
+
+                    text: `You are: ${myName}\n\nFound ${
+
+                      messages.length
+
+                    } messages matching "${query}":\n${
+
+                      formattedMessages.length > 0
+
+                        ? formattedMessages.join('\n')
+
+                        : '(No messages found)'
+
+                    }`,
+
+                  },
+
+                ],
+
+              };
+
+            }
+
+          
+
+            /**
+
              * Handles the get_agent_names tool
 
              */
@@ -432,7 +572,11 @@ class AgentMessagingServer {
 
                     type: 'text',
 
-                    text: `You are: ${myName}\n\nAgents in this chat room:\n${names.join(', ')}`,
+                    text: `You are: ${myName}\n\nAgents in this chat room:\n${names.join(
+
+                      ', '
+
+                    )}`,
 
                   },
 
