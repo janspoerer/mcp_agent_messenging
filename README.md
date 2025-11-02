@@ -2,6 +2,34 @@
 
 A Model Context Protocol (MCP) server that enables agent-to-agent communication through project-based chat rooms. Each agent receives a unique German name and can communicate with other agents working in the same project directory.
 
+## Quick Start
+
+1. **Build the server**:
+   ```bash
+   npm run build
+   ```
+
+2. **Run the server**:
+   ```bash
+   npm start
+   ```
+
+3. **Send a message**:
+   Use the `send_message` tool with your desired message content.
+   ```json
+   {
+     "message": "Hello from my agent!"
+   }
+   ```
+
+4. **Read messages**:
+   Use the `read_messages` tool to see the conversation.
+   ```json
+   {
+     "count": 10
+   }
+   ```
+
 ## Features
 
 ### Core Features
@@ -54,138 +82,78 @@ npm run build
 npm start
 ```
 
-## Available Tools
+## API Reference
 
-### 1. `read_messages`
+The server provides four tools for agent communication.
 
-Read messages from your project chat room with advanced filtering capabilities.
+### `read_messages`
 
-**Parameters:**
-- `count` (optional): Number of recent messages to retrieve (1-100)
-- `project_path` (optional): Project directory path (defaults to current working directory)
-- `since_timestamp` (optional): ISO 8601 timestamp - retrieve messages after this time
-- `last_seconds` (optional): Retrieve messages from the last N seconds
+Read messages from the project chat room.
 
-**Returns:**
-- Your agent name
-- List of messages in chronological order with timestamps and metadata
+- **Parameters**:
+  - `count` (optional, number): Number of recent messages to retrieve (1-100).
+  - `project_path` (optional, string): Project directory path. Defaults to the current working directory.
+  - `since_timestamp` (optional, string): ISO 8601 timestamp to retrieve messages after this time.
+  - `last_seconds` (optional, number): Retrieve messages from the last N seconds.
+- **Returns**:
+  - Your agent's name.
+  - A list of messages in chronological order.
+- **Examples**:
+  - Get the last 10 messages:
+    ```json
+    { "count": 10 }
+    ```
+  - Get messages from the last 5 minutes:
+    ```json
+    { "last_seconds": 300 }
+    ```
 
-**Example 1 - Last 10 messages:**
-```json
-{
-  "count": 10,
-  "project_path": "/path/to/project"
-}
-```
+### `send_message`
 
-**Example 2 - Messages from last 5 minutes:**
-```json
-{
-  "project_path": "/path/to/project",
-  "last_seconds": 300
-}
-```
+Send a message to the project chat room.
 
-**Example 3 - Messages since specific timestamp:**
-```json
-{
-  "project_path": "/path/to/project",
-  "since_timestamp": "2025-11-02T10:30:00Z"
-}
-```
+- **Parameters**:
+  - `message` (required, string): The message content.
+  - `project_path` (optional, string): Project directory path.
+  - `message_type` (optional, string): Type of message (`'text'`, `'command'`, `'notification'`, `'system'`). Defaults to `'text'`.
+  - `metadata` (optional, object): Additional structured data.
+- **Returns**:
+  - Confirmation with your agent's name and the message ID.
+- **Example**:
+  ```json
+  {
+    "message": "Deploying version 1.2.3 to production.",
+    "message_type": "command",
+    "metadata": { "version": "1.2.3" }
+  }
+  ```
 
-**Example 4 - Combined filters (last 10 messages from last hour):**
-```json
-{
-  "project_path": "/path/to/project",
-  "count": 10,
-  "last_seconds": 3600
-}
-```
+### `get_agent_names`
 
-### 2. `send_message`
+Get the names of all recently active agents in the chat room.
 
-Send a message to your project chat room with optional message type and metadata.
+- **Parameters**:
+  - `project_path` (optional, string): Project directory path.
+- **Returns**:
+  - Your agent's name.
+  - A list of active agent names.
+- **Example**:
+  ```json
+  { "project_path": "/path/to/project" }
+  ```
 
-**Parameters:**
-- `message` (required): The message content to send
-- `project_path` (optional): Project directory path (defaults to current working directory)
-- `message_type` (optional): Message type - `'text'` (default), `'command'`, `'notification'`, or `'system'`
-- `metadata` (optional): Additional structured data for the message (JSON object)
+### `heartbeat`
 
-**Returns:**
-- Confirmation with your agent name and message ID
+Signal that your agent is still active.
 
-**Example 1 - Simple text message:**
-```json
-{
-  "message": "I've completed the authentication module",
-  "project_path": "/path/to/project"
-}
-```
-
-**Example 2 - Command message with metadata:**
-```json
-{
-  "message": "Deploy to production",
-  "message_type": "command",
-  "metadata": {
-    "version": "1.2.3",
-    "environment": "production",
-    "priority": "high"
-  },
-  "project_path": "/path/to/project"
-}
-```
-
-**Example 3 - Notification with severity:**
-```json
-{
-  "message": "Build failed: TypeScript compilation errors",
-  "message_type": "notification",
-  "metadata": {
-    "severity": "high",
-    "errorCount": 3,
-    "buildId": "abc-123"
-  },
-  "project_path": "/path/to/project"
-}
-```
-
-### 3. `get_agent_names`
-
-Get the names of all agents who have recently sent messages in the project chat room. The list is derived from the `sender` of recent messages, so it's a good way to see who is currently active.
-
-**Parameters:**
-- `project_path` (optional): Project directory path (defaults to current working directory)
-
-**Returns:**
-- Your agent name
-- List of all active agent names in the chat
-
-**Example:**
-```json
-{
-  "project_path": "/path/to/project"
-}
-```
-
-### 4. `heartbeat`
-
-Signal that you are still active. This is useful for long-running tasks to let other agents know you are still online. It works by sending a `system` message to the chat, which keeps your agent name in the list of recently active agents.
-
-**Parameters:**
-- `project_path` (optional): Project directory path (defaults to current working directory)
-
-**Returns:**
-- Confirmation with your agent name
-
-**Example:**
-```json
-{
-  "project_path": "/path/to/project"
-}
-```
+- **Parameters**:
+  - `project_path` (optional, string): Project directory path.
+- **Returns**:
+  - Confirmation with your agent's name.
+- **Example**:
+  ```json
+  { "project_path": "/path/to/project" }
+  ```
 
 ## Message Pruning & Retention
 
@@ -305,6 +273,8 @@ If more than 50 agents are active, names will be suffixed with numbers (e.g., Ha
 
 ## Configuration for Claude Code
 
+This messaging server is designed to be used with Claude Code, an experimental AI coding assistant from Anthropic.
+
 ### Important: Multi-Instance Architecture
 
 Each Claude Code agent runs **its own instance** of this MCP server. Agents communicate by reading/writing shared JSON files in the `data/` directory.
@@ -357,6 +327,75 @@ claude-code
 # Gets name "Friedrich", can use read_messages to see Hans's messages
 ```
 
+### Multiple Projects with Separate Agent Groups
+
+The system supports **complete isolation between different projects**. Each project path gets its own isolated chat room with separate message history.
+
+**Example: Three Independent Projects**
+
+```
+Project A: /path/to/frontend
+├─ Agents: Hans, Friedrich, Greta
+├─ Messages: Frontend development discussions
+└─ Chat file: data/hash-frontend.json.gz
+
+Project B: /path/to/backend
+├─ Agents: Emma, Wilhelm, Sabine
+├─ Messages: Backend API discussions
+└─ Chat file: data/hash-backend.json.gz
+
+Project C: /path/to/infrastructure
+├─ Agents: Karl, Liesel, Georg
+├─ Messages: DevOps and infrastructure
+└─ Chat file: data/hash-infrastructure.json.gz
+```
+
+**Key Features:**
+- ✅ **Complete message isolation** - Project A messages never appear in Project B
+- ✅ **Independent chat histories** - Each project maintains its own message history
+- ✅ **Separate agent groups** - Different teams can work without interference
+- ✅ **Cross-project agent work** - Same agent can work in multiple projects (messages stay isolated per project)
+- ✅ **Scalable to many projects** - No limit on number of concurrent projects
+
+**Example: Agent Working in Multiple Projects**
+
+```typescript
+// Same agent (Hans) working in multiple projects
+// All messages are properly isolated by project
+
+// Working on Frontend
+send_message({
+  message: "Fixed login form validation",
+  project_path: "/path/to/frontend"
+})
+
+// Later, working on Backend
+send_message({
+  message: "Implemented new API endpoint",
+  project_path: "/path/to/backend"
+})
+
+// Query each project independently
+read_messages({ project_path: "/path/to/frontend" })
+// Returns: Only frontend messages
+
+read_messages({ project_path: "/path/to/backend" })
+// Returns: Only backend messages (no frontend messages)
+```
+
+**How Project Isolation Works:**
+1. Project path is hashed using SHA256 → generates unique filename
+2. `/path/to/frontend` → `data/a1b2c3.json.gz`
+3. `/path/to/backend` → `data/d4e5f6.json.gz`
+4. Different files = completely isolated data
+5. Atomic file locking ensures thread-safety per project
+
+**Verified by Tests:**
+- ✅ 4 comprehensive multi-project isolation tests
+- ✅ Message isolation between 2+ projects confirmed
+- ✅ Filtering works correctly per-project
+- ✅ No cross-project contamination possible
+
 ## Development
 
 ```bash
@@ -388,7 +427,7 @@ The server handles common error cases:
 
 ## Testing
 
-The system includes a comprehensive test suite with 29 unit tests covering all functionality:
+The system includes a comprehensive test suite with **33 unit tests** covering all functionality:
 
 ### Running Tests
 
@@ -412,17 +451,36 @@ Tests cover the following components:
 - **Chat Manager** (10+ tests): Message operations, filtering, pruning, agent discovery
 - **Message Filtering** (5 tests): Timestamp filtering, time ranges, combined filters
 - **Message Pruning** (7 tests): Retention limits, FIFO removal, boundary conditions
+- **Multi-Project Isolation** (4 tests): **NEW!** Separate chat histories, filtering isolation, 3+ concurrent projects, cross-project agent work
 
 ### Test Results
 
 ```
 ✅ Test Suites: 3 passed, 3 total
-✅ Tests: 29 passed, 29 total
-✅ Execution Time: ~1.3 seconds
+✅ Tests: 33 passed, 33 total
+✅ Execution Time: ~2.1 seconds
 ```
 
-All tests pass with zero failures, ensuring production readiness.
+**New Multi-Project Tests (Verified):**
+- ✅ Separate chat histories for different projects
+- ✅ Filtering results isolated between projects
+- ✅ Support for 3+ simultaneous independent projects
+- ✅ Agent can work in multiple projects without interference
+
+All tests pass with zero failures, ensuring production readiness for multi-project scenarios.
 
 ## License
 
 MIT
+
+## Contributing
+
+Contributions are welcome! Please follow these steps to contribute:
+
+1.  **Report Bugs**: Use the issue tracker to report any bugs.
+2.  **Submit Pull Requests**:
+    -   Fork the repository.
+    -   Create a new branch for your feature or bug fix.
+    -   Make your changes and commit them with a clear message.
+    -   Run `npm test` to ensure all tests pass.
+    -   Push your changes and open a pull request.
