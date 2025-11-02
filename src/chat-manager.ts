@@ -312,6 +312,36 @@ export class ChatManager {
   }
 
   /**
+   * Gets statistics about a specific chat room
+   * @param projectPath The project path
+   * @returns Statistics object
+   */
+  async getChatStats(projectPath: string): Promise<{
+    createdAt: Date;
+    totalMessages: number;
+    allAgents: string[];
+  }> {
+    const chatRoom = await this.persistence.loadChatRoom(projectPath);
+
+    if (!chatRoom) {
+      throw new Error('Chat room not found');
+    }
+
+    const allAgents = new Set<string>();
+    chatRoom.messages.forEach((msg) => {
+      if (msg.sender !== 'System') {
+        allAgents.add(msg.sender);
+      }
+    });
+
+    return {
+      createdAt: chatRoom.createdAt,
+      totalMessages: chatRoom.messages.length,
+      allAgents: Array.from(allAgents).sort(),
+    };
+  }
+
+  /**
    * Gets statistics about chat rooms
    * @returns Statistics object
    */
