@@ -1,0 +1,36 @@
+{
+  "name": "mcp-agent-messaging",
+  "version": "1.0.0",
+  "description": "MCP server for agent-to-agent messaging with project-based chat rooms",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "mcp",
+    "agent",
+    "messaging",
+    "chat"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^2.0.31",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "proper-lockfile": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.18.13",
+    "@types/proper-lockfile": "^4.1.4",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.6.0"
+  }
+}
