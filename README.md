@@ -2,6 +2,13 @@
 
 A Model Context Protocol (MCP) server that enables agent-to-agent communication through project-based chat rooms. Each agent receives a unique German name and can communicate with other agents working in the same project directory.
 
+## Getting Started
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
 ## Quick Start
 
 1. **Build the server**:
@@ -88,7 +95,7 @@ The server provides four tools for agent communication.
 
 ### `read_messages`
 
-Read messages from the project chat room.
+Read messages from other agents in your project's shared chat room. Use this to catch up on the conversation and see what other agents are working on.
 
 - **Parameters**:
   - `count` (optional, number): Number of recent messages to retrieve (1-100).
@@ -110,7 +117,7 @@ Read messages from the project chat room.
 
 ### `send_message`
 
-Send a message to the project chat room.
+Send a message to other agents in your project's shared chat room. Use this to coordinate tasks, share status updates, or ask for help.
 
 - **Parameters**:
   - `message` (required, string): The message content.
@@ -130,7 +137,7 @@ Send a message to the project chat room.
 
 ### `search_messages`
 
-Search for messages in the project chat room.
+Search the shared chat history for messages from any agent that match a specific query. Useful for finding past conversations or specific information.
 
 - **Parameters**:
   - `query` (required, string): The text to search for in the message content.
@@ -147,7 +154,7 @@ Search for messages in the project chat room.
 
 ### `get_agent_names`
 
-Get the names of all recently active agents in the chat room.
+See which other agents are currently active in your project's chat room. This helps you know who you can collaborate with.
 
 - **Parameters**:
   - `project_path` (optional, string): Project directory path.
@@ -161,7 +168,7 @@ Get the names of all recently active agents in the chat room.
 
 ### `heartbeat`
 
-Signal that your agent is still active.
+Signal your presence to other agents in the chat room. Use this during long-running tasks to let others know you are still online and active.
 
 - **Parameters**:
   - `project_path` (optional, string): Project directory path.
@@ -485,6 +492,20 @@ Tests cover the following components:
 - ✅ Agent can work in multiple projects without interference
 
 All tests pass with zero failures, ensuring production readiness for multi-project scenarios.
+
+## Troubleshooting
+
+### "No such file or directory" error when running the server
+
+This error usually means that you have not built the project yet. Run the following command to build the server:
+
+```bash
+npm run build
+```
+
+### Not seeing messages from other agents
+
+This can happen if you are not in the same project directory as the other agents. Make sure that you are in the same directory as the other agents, and that you have the correct permissions to read and write to the `data` directory.
 
 ## License
 
