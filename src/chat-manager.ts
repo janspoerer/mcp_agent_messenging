@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { ChatRoom, Message, AgentIdentity } from './types.js';
 import { AgentNamer } from './agent-namer.js';
 import { PersistenceManager } from './persistence.js';
+import { createLogger } from './logger.js';
 
 /**
  * Message retention limit - configurable via environment variable
@@ -54,12 +55,19 @@ export class ChatManager {
   private persistence: PersistenceManager = new PersistenceManager();
   private agentNamer: AgentNamer = new AgentNamer();
   private myIdentity: AgentIdentity | null = null;
+  private logger = createLogger('ChatManager');
 
   /**
    * Initializes the chat manager and loads/creates agent identity
    */
   async initialize(): Promise<void> {
-    this.myIdentity = await this.persistence.loadOrCreateIdentity(this.agentNamer);
+    await this.logger.timeAsync(
+      'Initializing ChatManager',
+      async () => {
+        this.myIdentity = await this.persistence.loadOrCreateIdentity(this.agentNamer);
+        this.logger.info('Agent identity assigned', { agentName: this.myIdentity?.name });
+      }
+    );
   }
 
   /**
@@ -96,45 +104,63 @@ export class ChatManager {
     const myName = this.myIdentity.name;
     let messageId = '';
 
-    // Use atomic update to prevent race conditions
-    await this.persistence.atomicUpdateChatRoom(projectPath, async (chatRoom) => {
-      // Check if this is a newly created chat room
-      const isNewRoom = chatRoom.messages.length === 0;
+    // Log message sending with timing
+    return await this.logger.timeAsync(
+      'Sending message',
+      async () => {
+        // Use atomic update to prevent race conditions
+        await this.persistence.atomicUpdateChatRoom(projectPath, async (chatRoom) => {
+          // Check if this is a newly created chat room
+          const isNewRoom = chatRoom.messages.length === 0;
 
-      if (isNewRoom) {
-        // Add system message about creation
-        chatRoom.messages.push({
-          id: randomUUID(),
-          sender: 'System',
-          content: `Chat room created by ${myName}`,
-          timestamp: new Date(),
-          type: 'system',
+          if (isNewRoom) {
+            // Add system message about creation
+            chatRoom.messages.push({
+              id: randomUUID(),
+              sender: 'System',
+              content: `Chat room created by ${myName}`,
+              timestamp: new Date(),
+              type: 'system',
+            });
+          }
+
+          // Add the message
+          messageId = randomUUID();
+          const message: Message = {
+            id: messageId,
+            sender: myName,
+            content,
+            timestamp: new Date(),
+            type,
+            metadata,
+          };
+          chatRoom.messages.push(message);
+          chatRoom.lastSeen[myName] = new Date();
+
+          // Prune old messages if history is too long
+          if (chatRoom.messages.length > MAX_MESSAGES) {
+            const messagesToKeep = chatRoom.messages.slice(
+              chatRoom.messages.length - MAX_MESSAGES
+            );
+            chatRoom.messages = messagesToKeep;
+            this.logger.debug('Pruned old messages', {
+              retained: messagesToKeep.length,
+              project: projectPath,
+            });
+          }
         });
-      }
 
-      // Add the message
-      messageId = randomUUID();
-      const message: Message = {
-        id: messageId,
-        sender: myName,
-        content,
-        timestamp: new Date(),
-        type,
-        metadata,
-      };
-      chatRoom.messages.push(message);
-      chatRoom.lastSeen[myName] = new Date();
+        this.logger.debug('Message sent', {
+          messageId,
+          sender: myName,
+          type,
+          project: projectPath,
+        });
 
-      // Prune old messages if history is too long
-      if (chatRoom.messages.length > MAX_MESSAGES) {
-        const messagesToKeep = chatRoom.messages.slice(
-          chatRoom.messages.length - MAX_MESSAGES
-        );
-        chatRoom.messages = messagesToKeep;
-      }
-    });
-
-    return messageId;
+        return messageId;
+      },
+      { sender: myName, messageType: type, project: projectPath }
+    );
   }
 
   /**
@@ -161,15 +187,30 @@ export class ChatManager {
    * @returns Array of messages
    */
   async getLastMessages(projectPath: string, count: number): Promise<Message[]> {
-    // Always reload from disk
-    const chatRoom = await this.persistence.loadChatRoom(projectPath);
+    return await this.logger.timeAsync(
+      'Getting last messages',
+      async () => {
+        // Always reload from disk
+        const chatRoom = await this.persistence.loadChatRoom(projectPath);
 
-    if (!chatRoom) {
-      return [];
-    }
+        if (!chatRoom) {
+          this.logger.debug('No chat room found', { project: projectPath });
+          return [];
+        }
 
-    const startIndex = Math.max(0, chatRoom.messages.length - count);
-    return chatRoom.messages.slice(startIndex);
+        const startIndex = Math.max(0, chatRoom.messages.length - count);
+        const messages = chatRoom.messages.slice(startIndex);
+
+        this.logger.debug('Retrieved messages', {
+          count: messages.length,
+          total: chatRoom.messages.length,
+          project: projectPath,
+        });
+
+        return messages;
+      },
+      { count, project: projectPath }
+    );
   }
 
   /**
@@ -216,6 +257,7 @@ export class ChatManager {
 
     return filtered;
   }
+
 
   /**
    * Searches messages in a project chat
@@ -283,5 +325,29 @@ export class ChatManager {
       myName: this.getMyName(),
       totalChatRooms: chatRooms.length,
     };
+  }
+
+  /**
+   * Sends a welcome message if the chat room is new
+   * @param chatRoom The chat room
+   * @param myName The name of the agent
+   * @param type The type of the message
+   */
+  private sendWelcomeMessageIfNeeded(chatRoom: ChatRoom, myName: string, type: string): void {
+    const isNewRoom = chatRoom.messages.length === 0;
+    if (isNewRoom && type !== 'system' && type !== 'notification') {
+      // Add welcome message
+      chatRoom.messages.push({
+        id: randomUUID(),
+        sender: 'System',
+        content: `Welcome to the multi-agent chat room! You can use the following tools to interact with other agents:
+- \`read_messages\`: Read messages from the chat room.
+- \`send_message\`: Send a message to the chat room.
+- \`get_agent_names\`: Get the names of all agents in the chat room.
+- \`heartbeat\`: Let other agents know you are still active.`,
+        timestamp: new Date(),
+        type: 'system',
+      });
+    }
   }
 }
