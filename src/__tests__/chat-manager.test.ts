@@ -99,6 +99,33 @@ describe('ChatManager', () => {
     });
   });
 
+  describe('Message Searching', () => {
+    beforeEach(async () => {
+      await chatManager.sendMessage(testProjectPath, 'This is a test message.');
+      await chatManager.sendMessage(testProjectPath, 'Another TEST message.');
+      await chatManager.sendMessage(testProjectPath, 'Completely different.');
+    });
+
+    it('should return messages matching a simple query', async () => {
+      const results = await chatManager.searchMessages(testProjectPath, 'test');
+      expect(results.length).toBe(2);
+      expect(results[0].content).toBe('This is a test message.');
+      expect(results[1].content).toBe('Another TEST message.');
+    });
+
+    it('should be case-insensitive', async () => {
+      const results = await chatManager.searchMessages(testProjectPath, 'TEST');
+      expect(results.length).toBe(2);
+      expect(results[0].content).toBe('This is a test message.');
+      expect(results[1].content).toBe('Another TEST message.');
+    });
+
+    it('should return an empty array if no messages match', async () => {
+      const results = await chatManager.searchMessages(testProjectPath, 'nomatch');
+      expect(results.length).toBe(0);
+    });
+  });
+
   describe('Agent Identity', () => {
     it('should have a name after initialization', () => {
       const name = chatManager.getMyName();

@@ -128,6 +128,23 @@ Send a message to the project chat room.
   }
   ```
 
+### `search_messages`
+
+Search for messages in the project chat room.
+
+- **Parameters**:
+  - `query` (required, string): The text to search for in the message content.
+  - `project_path` (optional, string): Project directory path.
+- **Returns**:
+  - Your agent's name.
+  - A list of messages that match the search query.
+- **Example**:
+  ```json
+  {
+    "query": "deployment"
+  }
+  ```
+
 ### `get_agent_names`
 
 Get the names of all recently active agents in the chat room.
