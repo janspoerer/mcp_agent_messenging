@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mcpAgentMessaging": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/Users/janspoerer/code/miscellaneous/mcp_agent_messenging",
+      "trust": false
+    }
+  }
+}

@@ -196,7 +196,7 @@ export class ChatManager {
     // Filter by timestamp if provided
     if (options.sinceTimestamp) {
       const sinceDate = new Date(options.sinceTimestamp);
-      filtered = filtered.filter((msg) => msg.timestamp > sinceDate);
+      filtered = filtered.filter((msg) => msg.timestamp >= sinceDate);
     }
 
     // Filter by last N seconds if provided
