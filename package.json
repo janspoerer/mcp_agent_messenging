@@ -10,13 +10,12 @@
     "dev": "tsc && node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "jest"
   },
   "keywords": [
     "mcp",
     "agent",
-    "messaging",
-    "chat"
+    "messaging"
   ],
   "author": "",
   "license": "MIT",
