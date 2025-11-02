@@ -1,4 +1,4 @@
-import { ChatManager } from '../chat-manager.js';
+import { ChatManager } from '../chat-manager';
 
 describe('ChatManager', () => {
   let chatManager: ChatManager;
