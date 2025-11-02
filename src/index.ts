@@ -17,7 +17,7 @@ import { ChatManager } from './chat-manager.js';
 /**
  * MCP Server for Agent Messaging
  */
-class AgentMessagingServer {
+export class AgentMessagingServer {
   private server: Server;
   private chatManager: ChatManager;
 
@@ -136,195 +136,195 @@ class AgentMessagingServer {
 
              */
 
-            private getToolDefinitions(): Tool[] {
+                      private getToolDefinitions(): Tool[] {
 
-              return [
+                        return [
 
-                {
+                          {
 
-                  name: 'read_messages',
+                            name: 'read_messages',
 
-                  description: 'Read messages from your project chat room. Messages are returned in chronological order (oldest first). Supports filtering by count, timestamp, or time range.',
+                            description: 'Read messages from other agents in your project\'s shared chat room. Use this to catch up on the conversation and see what other agents are working on.',
 
-                  inputSchema: {
+                            inputSchema: {
 
-                    type: 'object',
+                              type: 'object',
 
-                    properties: {
+                              properties: {
 
-                      count: {
+                                count: {
 
-                        type: 'number',
+                                  type: 'number',
 
-                        description: 'Number of recent messages to retrieve (max 100, optional)',
+                                  description: 'Number of recent messages to retrieve (max 100, optional)',
 
-                        minimum: 1,
+                                  minimum: 1,
 
-                        maximum: 100,
+                                  maximum: 100,
 
-                      },
+                                },
 
-                      project_path: {
+                                project_path: {
 
-                        type: 'string',
+                                  type: 'string',
 
-                        description: 'The project path/folder (defaults to current working directory)',
+                                  description: 'The project path/folder (defaults to current working directory)',
 
-                      },
+                                },
 
-                      since_timestamp: {
+                                since_timestamp: {
 
-                        type: 'string',
+                                  type: 'string',
 
-                        description: 'ISO 8601 timestamp - retrieve messages after this time (e.g., "2024-01-15T10:30:00Z")',
+                                  description: 'ISO 8601 timestamp - retrieve messages after this time (e.g., "2024-01-15T10:30:00Z")',
 
-                      },
+                                },
 
-                      last_seconds: {
+                                last_seconds: {
 
-                        type: 'number',
+                                  type: 'number',
 
-                        description: 'Retrieve messages from the last N seconds',
+                                  description: 'Retrieve messages from the last N seconds',
 
-                        minimum: 1,
+                                  minimum: 1,
 
-                      },
+                                },
 
-                    },
+                              },
 
-                    required: [],
+                              required: [],
 
-                  },
+                            },
 
-                },
+                          },
 
-                {
+                          {
 
-                  name: 'send_message',
+                            name: 'send_message',
 
-                  description: 'Send a message to your project chat room. All agents in the same project will be able to see this message.',
+                            description: 'Send a message to other agents in your project\'s shared chat room. Use this to coordinate tasks, share status updates, or ask for help.',
 
-                  inputSchema: {
+                            inputSchema: {
 
-                    type: 'object',
+                              type: 'object',
 
-                    properties: {
+                              properties: {
 
-                      message: {
+                                message: {
 
-                        type: 'string',
+                                  type: 'string',
 
-                        description: 'The message content to send',
+                                  description: 'The message content to send',
 
-                      },
+                                },
 
-                      project_path: {
+                                project_path: {
 
-                        type: 'string',
+                                  type: 'string',
 
-                        description: 'The project path/folder (defaults to current working directory)',
+                                  description: 'The project path/folder (defaults to current working directory)',
 
-                      },
+                                },
 
-                    },
+                              },
 
-                    required: ['message'],
+                              required: ['message'],
 
-                  },
+                            },
 
-                },
+                          },
 
-                {
+                          {
 
-                  name: 'search_messages',
+                            name: 'search_messages',
 
-                  description: 'Search for messages in your project chat room.',
+                            description: 'Search the shared chat history for messages from any agent that match a specific query. Useful for finding past conversations or specific information.',
 
-                  inputSchema: {
+                            inputSchema: {
 
-                    type: 'object',
+                              type: 'object',
 
-                    properties: {
+                              properties: {
 
-                      query: {
+                                query: {
 
-                        type: 'string',
+                                  type: 'string',
 
-                        description: 'The text to search for in the message content.',
+                                  description: 'The text to search for in the message content.',
 
-                      },
+                                },
 
-                      project_path: {
+                                project_path: {
 
-                        type: 'string',
+                                  type: 'string',
 
-                        description: 'The project path/folder (defaults to current working directory)',
+                                  description: 'The project path/folder (defaults to current working directory)',
 
-                      },
+                                },
 
-                    },
+                              },
 
-                    required: ['query'],
+                              required: ['query'],
 
-                  },
+                            },
 
-                },
+                          },
 
-                {
+                          {
 
-                  name: 'get_agent_names',
+                            name: 'get_agent_names',
 
-                  description: 'Get the names of all agents currently active in your project chat room.',
+                            description: 'See which other agents are currently active in your project\'s chat room. This helps you know who you can collaborate with.',
 
-                  inputSchema: {
+                            inputSchema: {
 
-                    type: 'object',
+                              type: 'object',
 
-                    properties: {
+                              properties: {
 
-                      project_path: {
+                                project_path: {
 
-                        type: 'string',
+                                  type: 'string',
 
-                        description: 'The project path/folder (defaults to current working directory)',
+                                  description: 'The project path/folder (defaults to current working directory)',
 
-                      },
+                                },
 
-                    },
+                              },
 
-                  },
+                            },
 
-                },
+                          },
 
-                {
+                                          {
 
-                  name: 'heartbeat',
+                                            name: 'heartbeat',
 
-                  description: 'Signal that you are still active. This updates your "last seen" status.',
+                                            description: 'Signal your presence to other agents in the chat room. Use this during long-running tasks to let others know you are still online and active.',
 
-                  inputSchema: {
+                                            inputSchema: {
 
-                    type: 'object',
+                                              type: 'object',
 
-                    properties: {
+                                              properties: {
 
-                      project_path: {
+                                                project_path: {
 
-                        type: 'string',
+                                                  type: 'string',
 
-                        description: 'The project path/folder (defaults to current working directory)',
+                                                  description: 'The project path/folder (defaults to current working directory)',
 
-                      },
+                                                },
 
-                    },
+                                              },
 
-                  },
+                                                                        },
 
-                },
+                                                                      },
 
-              ];
+                                                                    ];
 
-            }
+                                                                  }
 
           
 
@@ -588,47 +588,99 @@ class AgentMessagingServer {
 
           
 
-            /**
-
-             * Handles the heartbeat tool
-
-             */
-
-            private async handleHeartbeat(
-
-              projectPath: string,
-
-              args: any
-
-            ): Promise<any> {
-
-              await this.chatManager.heartbeat(projectPath);
-
-              const myName = this.chatManager.getMyName();
+                        /**
 
           
 
-              return {
+                         * Handles the heartbeat tool
 
-                content: [
+          
 
-                  {
+                         */
 
-                    type: 'text',
+          
 
-                    text: `Heartbeat sent successfully by ${myName}`,
+                        private async handleHeartbeat(
 
-                  },
+          
 
-                ],
+                          projectPath: string,
 
-              };
+          
 
-            }
+                          args: any
 
-  /**
-   * Starts the MCP server
-   */
+          
+
+                        ): Promise<any> {
+
+          
+
+                          await this.chatManager.heartbeat(projectPath);
+
+          
+
+                          const myName = this.chatManager.getMyName();
+
+          
+
+                      
+
+          
+
+                          return {
+
+          
+
+                            content: [
+
+          
+
+                              {
+
+          
+
+                                type: 'text',
+
+          
+
+                                text: `Heartbeat sent successfully by ${myName}`,
+
+          
+
+                              },
+
+          
+
+                            ],
+
+          
+
+                          };
+
+          
+
+                        }
+
+          
+
+            
+
+          
+
+                        
+
+          
+
+              /**
+
+          
+
+               * Starts the MCP server
+
+          
+
+               */
   async start(): Promise<void> {
     // Initialize the chat manager (loads/creates agent identity)
     await this.chatManager.initialize();
