@@ -38,9 +38,6 @@ data/                  # Chat history (one JSON file per project)
 ## Installation
 
 ```bash
-# Install dependencies
-npm install
-
 # Build the project
 npm run build
 
@@ -91,7 +88,7 @@ Send a message to your project chat room.
 
 ### 3. `get_agent_names`
 
-Get the names of all agents currently active in your project chat room.
+Get the names of all agents who have recently sent messages in the project chat room. The list is derived from the `sender` of recent messages, so it's a good way to see who is currently active.
 
 **Parameters:**
 - `project_path` (optional): Project directory path (defaults to current working directory)
@@ -109,7 +106,7 @@ Get the names of all agents currently active in your project chat room.
 
 ### 4. `heartbeat`
 
-Signal that you are still active. This updates your "last seen" status.
+Signal that you are still active. This is useful for long-running tasks to let other agents know you are still online. It works by sending a `system` message to the chat, which keeps your agent name in the list of recently active agents.
 
 **Parameters:**
 - `project_path` (optional): Project directory path (defaults to current working directory)
@@ -124,64 +121,27 @@ Signal that you are still active. This updates your "last seen" status.
 }
 ```
 
-## How It Works
+## Key Concepts
 
-1. **Instance Startup**: Each MCP server instance represents ONE agent
-2. **Identity Creation**: On first start, agent gets a unique German name (stored in `.agent-identity.json`)
-3. **Identity Persistence**: The agent keeps the same name across restarts
-4. **Message Sending**: Agent reloads chat from disk, adds message, saves back to disk
-5. **Message Reading**: Agent always reloads from disk to see messages from other instances
-6. **Agent Discovery**: Active agents are derived from recent messages in the chat history
-7. **File-Based Communication**: All instances share the same `data/` directory for cross-agent messaging
 
-## Persistence
 
-### Agent Identity
-Each instance stores its identity in `.agent-identity.json`:
-```json
-{
-  "name": "Hans",
-  "createdAt": "2025-11-01T18:30:00.000Z"
-}
-```
+This messaging system is built on a few simple but powerful concepts:
 
-**Important**: Don't delete this file unless you want the instance to get a new name!
 
-### Chat History
-Chat history is automatically saved to JSON files in the `data/` directory:
 
-- **One file per project**: Each project gets its own JSON file based on its path
-- **Automatic saving**: Messages are saved immediately when sent
-- **Automatic loading**: Chat history is reloaded from disk before every operation
-- **File naming**: Project paths are sanitized to create filesystem-safe filenames
-  - Example: `/Users/dev/my-project` → `_Users_dev_my_project.json`
+1.  **File-Based Communication**: Agents communicate by reading and writing to a shared JSON file in the `data/` directory. There is one file per project, and the file is named after a sanitized version of the project path. This approach requires no central server or network connection.
 
-**Data Location**: `./data/<sanitized_path>.json`
 
-**Data Format**: Each file contains:
-```json
-{
-  "projectPath": "/path/to/project",
-  "messages": [
-    {
-      "sender": "System",
-      "content": "Chat room created by Hans",
-      "timestamp": "2025-11-01T18:30:15.000Z"
-    },
-    {
-      "sender": "Hans",
-      "content": "Starting work on the login page",
-      "timestamp": "2025-11-01T18:31:22.000Z"
-    },
-    {
-      "sender": "Friedrich",
-      "content": "I'll handle the backend API",
-      "timestamp": "2025-11-01T18:32:45.000Z"
-    }
-  ],
-  "createdAt": "2025-11-01T18:30:00.000Z"
-}
-```
+
+2.  **Agent Identity**: Each agent instance is given a unique German name (e.g., "Hans", "Greta") when it first starts. This identity is stored in a `.agent-identity.json` file in the agent's working directory and is reused across restarts.
+
+
+
+3.  **Data Persistence**: All messages are stored in the project's JSON file. The chat history is loaded from this file before each operation and saved back immediately after, ensuring that all agents have a consistent view of the conversation.
+
+
+
+4.  **Agent Discovery**: The list of "active" agents is derived from the `sender` field of recent messages in the chat history. The `heartbeat` tool allows agents to signal their presence, which adds a "system" message to the chat and keeps them in the active list.
 
 ## Example Usage Scenario
 
